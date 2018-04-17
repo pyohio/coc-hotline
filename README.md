@@ -22,7 +22,7 @@ and have the flexibility to add/remove people who will answer the call.
 3. (Optional) Add the "Incoming Webhooks" integration to your slack team of choice
     * Follow the configuration instructions and write down your WebHook URL
 4. Set the following environment variables:
-    * `COC_NUMBERS`: A comma separated list of phone numbers prefixed with `+`, numbers should include country code.
+    * `COC_NUMBERS`: A comma separated list of phone numbers prefixed with `+`, numbers should include country code. Optionally add a `;Name` to each number to show the name of the responder rather than their number in logs.
     * `COC_HTTP_SCHEME`: either `http` or `https`, we recommend deploying with [AWS Lambda](https://aws.amazon.com/lambda/) which will provide https for you.
     * `COC_SLACK_URL`: (Optional) The WebHook URL provided by the Incoming Webhooks Slack integration.
 5. Run `python coc-hotline.py`

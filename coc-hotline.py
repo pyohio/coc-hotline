@@ -27,7 +27,13 @@ def get_hotline_numbers():
                   ' string of numbers with country codes'
             raise ConfigurationError(msg)
 
-        _HOTLINE_NUMBERS = [num.strip() for num in numbers_str.split(',')]
+        _HOTLINE_NUMBERS = {}
+        for num in numbers_str.split(','):
+            try:
+                name = num.split(';')[1].strip()
+            except:
+                name = None
+            _HOTLINE_NUMBERS[num.split(';')[0].strip()] = name
 
     return _HOTLINE_NUMBERS
 
@@ -72,6 +78,9 @@ def send_slack_message(msg, attachments=None):
 def handle_answered(data):
     incoming_number = data.get('From')
     outgoing_number = data.get('To')
+    hotline_numbers = get_hotline_numbers()
+    if hotline_numbers.get(outgoing_number, None):
+        outgoing_number = hotline_numbers[outgoing_number]
     msg = f'Call from {incoming_number} answered by {outgoing_number}'
     print(msg)
     msg_attachments = [{
@@ -88,6 +97,9 @@ def handle_completed(data):
     incoming_number = data.get('From')
     outgoing_number = data.get('To')
     call_duration = data.get('CallDuration')
+    hotline_numbers = get_hotline_numbers()
+    if hotline_numbers.get(outgoing_number, None):
+        outgoing_number = hotline_numbers[outgoing_number]
     msg = f'Call from {incoming_number} to {outgoing_number} has completed'
     print(msg)
     msg_attachments = [{
