@@ -1,5 +1,6 @@
 from flask import Flask, Response, request, url_for
 from twilio.twiml.voice_response import VoiceResponse, Dial
+from twilio.twiml.messaging_response import MessagingResponse
 
 import requests
 
@@ -141,6 +142,26 @@ def incoming_call():
     response.append(dial)
 
     return Response(str(response), 200, mimetype="application/xml")
+
+
+@app.route('/incoming_sms', methods=['POST'])
+def incoming_sms():
+    incoming_number = request.values.get('From')
+    body = request.values.get('Body')
+    msg = f'Incoming SMS from {incoming_number}'
+    print(msg)
+    msg_attachments = [{
+        'color': 'danger',
+        'title': 'Incoming SMS',
+        'fallback': msg,
+        'text': f'From *{incoming_number}*\n{body}',
+        "mrkdwn_in": ["text", "pretext"],
+    }]
+    send_slack_message(f'<!channel>', msg_attachments)
+    response = MessagingResponse()
+    response.message("Thank you for contacting the PyCon US incident hotline, "
+                     f"a responder will contact you at {incoming_number}.")
+    return str(response)
 
 
 if __name__ == '__main__':
