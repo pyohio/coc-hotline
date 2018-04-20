@@ -140,7 +140,7 @@ def incoming_call():
         'text': f'From *{incoming_number}*',
         "mrkdwn_in": ["text", "pretext"],
     }]
-    send_slack_message(f'<!channel>', msg_attachments)
+    send_slack_message('', msg_attachments)
     status_url = url_for('call_status', _external=True, _scheme=get_http_scheme())
 
     for number in get_hotline_numbers():
@@ -169,7 +169,7 @@ def incoming_sms():
         'text': f'From *{incoming_number}*\n{body}',
         "mrkdwn_in": ["text", "pretext"],
     }]
-    send_slack_message(f'<!channel>', msg_attachments)
+    send_slack_message('', msg_attachments)
     response = MessagingResponse()
     response.message("Thank you for contacting the PyCon US incident hotline, "
                      f"a responder will contact you at {incoming_number}.")
