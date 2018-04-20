@@ -167,7 +167,7 @@ def incoming_sms():
     num_media = int(request.values.get("NumMedia", "0"))
     if num_media > 0:
         text += "\n\nMedia Attachments:"
-        for i in range(num_media + 1):
+        for i in range(num_media):
             media_url = request.values.get(f"MediaUrl{i}")
             text += f"\n  - {media_url}"
     msg_attachments = [{
