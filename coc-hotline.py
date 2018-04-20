@@ -162,11 +162,19 @@ def incoming_sms():
     body = request.values.get('Body')
     msg = f'Incoming SMS from {incoming_number}'
     print(msg)
+    text = f"From *{incoming_number}*"
+    text += f"\n{body}"
+    num_media = int(request.values.get("NumMedia", "0"))
+    if num_media > 0:
+        text += "\n\nMedia Attachments:"
+        for i in range(num_media + 1):
+            media_url = request.values.get(f"MediaUrl{i}")
+            text += f"\n  - {media_url}"
     msg_attachments = [{
         'color': 'danger',
         'title': 'Incoming SMS',
         'fallback': msg,
-        'text': f'From *{incoming_number}*\n{body}',
+        'text': text,
         "mrkdwn_in": ["text", "pretext"],
     }]
     send_slack_message('', msg_attachments)
