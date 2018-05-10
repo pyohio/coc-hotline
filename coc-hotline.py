@@ -1,3 +1,5 @@
+import datetime
+
 from flask import Flask, Response, request, url_for
 from twilio.twiml.voice_response import VoiceResponse, Dial
 from twilio.twiml.messaging_response import MessagingResponse
@@ -8,8 +10,14 @@ import os
 
 app = Flask(__name__)
 _HOTLINE_NUMBERS = None
+_AFTER_HOURS_NUMBERS = None
 _HTTP_SCHEME = None
 _SLACK_URL = None
+
+
+def after_hours():
+    timezone = datetime.timezone(datetime.timedelta(hours=-5))
+    return 9 <= datetime.datetime.now(tz=timezone).hour < 23
 
 
 class ConfigurationError(ValueError):
@@ -18,6 +26,7 @@ class ConfigurationError(ValueError):
 
 def get_hotline_numbers():
     global _HOTLINE_NUMBERS
+    global _AFTER_HOURS_NUMBERS
 
     if _HOTLINE_NUMBERS is None:
         numbers_str = os.environ.get('COC_NUMBERS', None)
@@ -35,6 +44,25 @@ def get_hotline_numbers():
                 name = None
             _HOTLINE_NUMBERS[num.split(';')[0].strip()] = name
 
+
+    if _AFTER_HOURS_NUMBERS is None:
+        numbers_str = os.environ.get('COC_AFTER_HOURS_NUMBERS', None)
+
+        if numbers_str is None:
+            msg = 'Environment variable COC_AFTER_HOURS_NUMBERS must be present and must be a' \
+                  ' comma delimited string of numbers with country codes'
+            raise ConfigurationError(msg)
+
+        _AFTER_HOURS_NUMBERS = {}
+        for num in numbers_str.split(','):
+            try:
+                name = num.split(';')[1].strip()
+            except:
+                name = None
+            _AFTER_HOURS_NUMBERS[num.split(';')[0].strip()] = name
+
+    if after_hours():
+        return _AFTER_HOURS_NUMBERS
     return _HOTLINE_NUMBERS
 
 
@@ -140,7 +168,7 @@ def incoming_call():
         'text': f'From *{incoming_number}*',
         "mrkdwn_in": ["text", "pretext"],
     }]
-    send_slack_message('', msg_attachments)
+    send_slack_message(f'<!channel>', msg_attachments)
     status_url = url_for('call_status', _external=True, _scheme=get_http_scheme())
 
     for number in get_hotline_numbers():
@@ -177,7 +205,7 @@ def incoming_sms():
         'text': text,
         "mrkdwn_in": ["text", "pretext"],
     }]
-    send_slack_message('', msg_attachments)
+    send_slack_message(f'<!channel>', msg_attachments)
     response = MessagingResponse()
     response.message("Thank you for contacting the PyCon US incident hotline, "
                      f"a responder will contact you at {incoming_number}.")
