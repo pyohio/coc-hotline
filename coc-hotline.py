@@ -17,7 +17,10 @@ _SLACK_URL = None
 
 def after_hours():
     timezone = datetime.timezone(datetime.timedelta(hours=-5))
-    return 9 <= datetime.datetime.now(tz=timezone).hour < 23
+    is_afterhours = 9 <= datetime.datetime.now(tz=timezone).hour < 23
+    if is_afterhours:
+        print(datetime.datetime.now(tz=timezone).hour)
+    return is_afterhours
 
 
 class ConfigurationError(ValueError):
